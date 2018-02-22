@@ -1,57 +1,75 @@
-(function () {
-	'use strict';
 
-	//import
-	const Chat = window.Chat;
-	const Form = window.Form;
+import Chat from '../chat/chat.js';
 	const DigitalClock = window.DigitalClock;
 
-	class App {
-		constructor({ el, head }) {
-			this.el = el;
-			this.head = head;
+const Form = window.Form;
+const AvatarService = window.AvatarService;
+const ChatService = window.ChatService;
 
-			this._createComponents();
-			this._initMediate();
+const chatService = new ChatService({
+	baseUrl: 'https://components-1601-1930.firebaseio.com/chat/messages.json'
+});
 
-			this.head.appendChild(this.clock.style);
-			this.el.appendChild(this.clock.el);
-			//this.el.appendChild(this.chat.el);
-			//this.el.appendChild(this.form.el);
-		}
+class App {
 
-		_createComponents() {
-			this.clock = new DigitalClock({
-				path: 'components'
-			});
+	constructor(options) {
+		this.el = options.el;
 
-			this.chat = new Chat({
-				el: this.el.querySelector('.chat')
-			});
+		this._createComponents();
+		this._initMediate();
 
-			this.form = new Form({
-				el: this.el.querySelector('.form')
-			});
-		}
+		this.el.appendChild(this.chat.el);
+		this.el.appendChild(this.form.el);
 
-		_initMediate() {
-			this.form.addActionOnSubmit((data) => {
-				data.time = this.clock.getTime(new Date());
-				this.chat.addMessage(data);
-			});
-
-			this.chat.onScrollStart(() => {
-				this.form.disable();
-			});
-
-			this.chat.onScrollEnd(() => {
-				this.form.enable();
-			});
-		}
-
-		// methods
+		this.render();
 	}
 
-	//export
-	window.App = App;
-})();
+	render () {
+		this.chat.render();
+		this.form.render();
+	}
+
+	_createComponents () {
+		this.chat = new Chat({
+			el: document.createElement('div'),
+			avatarService: new AvatarService,
+			chatService,
+			data: {
+				messages: [],
+				user: null
+			}
+		});
+
+		this.form = new Form({
+			el: document.createElement('div')
+		});
+	}
+
+	_initMediate () {
+		this.form.on('message', (event) => {
+			let data = event.detail;
+
+			data = {
+				text: data.message.value,
+				name: this.chat.getUsername()
+			};
+
+			chatService.sendMessage(data, () => {
+				console.log('NEW MSG');
+			});
+
+			this.chat.addOne(data);
+
+			this.chat.render();
+			this.form.reset();
+		});
+	}
+
+	addMessage (data) {
+		this.chat.addOne(data);
+	}
+
+}
+
+//export
+window.App = App;

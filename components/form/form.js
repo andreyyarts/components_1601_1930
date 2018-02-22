@@ -5,63 +5,71 @@
 		constructor({ el }) {
 			this.el = el;
 
-			this.message = this.el.querySelector('.form__message');
-			this.email = this.el.querySelector('.form__email_text');
+			this._initEvents();
+		}
 
-			this.el.addEventListener('keypress', this._onKeyPress.bind(this));
+		render () {
+			this.el.innerHTML = `
+				<form>
+					<textarea name="message" type="text"></textarea>
+					<input type="submit" value="Отправить" />
+				</form>
+			`;
+
+			this.formEl = this.el.querySelector('form');
 		}
 
 		/**
-		 * Установка обработчика на отправку формы
-		 * @param {function} action
+		 * Регистрация обработчика события
+		 * @param  {string}   name - тип события
+		 * @param  {function} cb
 		 */
-		addActionOnSubmit(action) {
-			this.el.addEventListener('submit', this.callAction(action));
+		on (name, cb) {
+			this.el.addEventListener(name, cb);
 		}
 
 		/**
-		 * Нажатие клавиши
-		 * @param {KeyboardEvent} event
+		 * Вызов обработчиков событий
+		 * @param  {string} name - тип события
+		 * @param  {*} data
 		 */
-		_onKeyPress(event) {
-			const enterKeyCode = 13;
+		trigger (name, data) {
+			let event = new CustomEvent(name, {detail: data});
 
-			if (event.keyCode === enterKeyCode) {
-				event.preventDefault();
-				this.dispatchSubmit();
-			}
-		}
-
-		/**
-		 * Отправка формы
-		 * @param {function} action
-		 * @returns function
-		 */
-		callAction(action) {
-			let self = this;
-
-			return event => {
-				event.preventDefault();
-
-				let data = {
-					email: self.email.value.trim(),
-					text: self.message.value.trim()
-				};
-				action(data);
-				self.message.value = '';
-			};
-		}
-
-		/**
-		 * Вызвать событие отправки формы
-		 */
-		dispatchSubmit() {
-			let event = document.createEvent('HTMLEvents');
-			event.initEvent('submit', true, true);
 			this.el.dispatchEvent(event);
 		}
 
-		// methods
+		reset () {
+			this.formEl.reset();
+		}
+	
+		_initEvents () {
+			this.el.addEventListener('submit', this._onSubmit.bind(this));
+		}
+
+		_onSubmit (event) {
+			event.preventDefault();
+			let formData = this._getFormData();
+
+			this.trigger('message', formData);
+		}
+
+		_getInputs () {
+			return this.el.querySelectorAll('input, textarea');
+		}
+
+		_getFormData () {
+			let formData = {};
+
+			[...this._getInputs()].forEach(input => {
+				formData[input.name] = {
+					value: input.value
+				}
+			});
+
+			return formData;
+		}
+
 	}
 
 	//export

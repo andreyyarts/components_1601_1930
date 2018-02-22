@@ -1,51 +1,49 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Чат!</title>
 
-<head>
-  <meta charset="utf-8">
-  <title>Часики!</title>
-  <!--<link rel="stylesheet" href="components/clock/clock.css" />-->
-  <link rel="stylesheet" href="styles/milligram.min.css">
-  <link rel="stylesheet" href="components/app/app.css" />
-  <link rel="stylesheet" href="components/chat/chat.css" />
-  <link rel="stylesheet" href="components/form/form.css" />
-</head>
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
 
-<body>
+    <!-- CSS Reset -->
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
 
-  <div class="app">
-    <div class="chat">
-      <select class="chat__messages" size="40">
-      </select>
-    </div>
-
-    <form class="form" method="post">
-      <div class="form__email">
-        <label for="form__email1">Email:</label>
-        <input class="form__email_text" id="form__email1" placeholder="Email"></input>
-      </div>
-      <textarea class="form__message"></textarea>
-      <input class="form__submit" type="submit"></input>
-    </form>
-  </div>
+    <!-- Milligram CSS minified -->
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
 
 
+    <link rel="stylesheet" href="components/chat/chat.css" />
+    <link rel="stylesheet" href="components/clock/clock.css" />
+    <link rel="stylesheet" href="components/app/app.css" />
+  </head>
+  <body>
 
-  <script src="components/clock/clock.js"></script>
-  <script src="components/digitalClock/digitalClock.js"></script>
-  <script src="components/chat/chat.js"></script>
-  <script src="components/form/form.js"></script>
+    <div class="app"></div>
 
-  <script src="components/app/app.js"></script>
+    
+    <script src="components/clock/clock.js"></script>
 
-  <!-- Application start -->
-  <script>
-    'use strict';
-    new window.App({
-      el: document.querySelector('.app'),
-      head: document.head
-    });
-  </script>
-</body>
+    <script src="modules/utils.js"></script>
+    <script src="modules/chatService.js"></script>
+    <script src="modules/avatarService.js"></script>
+    
+    <!-- <script src="components/chat/chat.pug.js"></script> -->
 
+    <script src="components/form/form.js"></script>
+
+
+    <script src="bundle.js"></script>
+
+    
+
+    <!-- Application start -->
+    <script>
+      'use strict';
+      window.__app = new window.App({
+        el: document.querySelector('.app')
+      });
+    </script>
+  </body>
 </html>

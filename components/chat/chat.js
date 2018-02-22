@@ -1,52 +1,183 @@
-(function () {
-	'use strict';
 
-	/**
-	 * @typedef {Object} ChatMessage
-	 *
- 	 * @property {string} text - Текст сообщения
- 	 * @property {string} email - Email отправителя сообщения
- 	 * @property {string} time - время отправления сообщения
-	 */
+//import
 
-	class Chat {
-		constructor({ el }) {
-			this.el = el;
+import tmpl from './chat.pug';
 
-			this.messages = this.el.querySelector('.chat__messages');
-		}
+// const tmpl = window.chat_tmpl;
+const utils = window.utils;
 
-		/**
-		 * Добавить новое сообщение в чат
-		 * @param {object} obj
-		 * @param {string} obj.time
-		 * @param {string} obj.email
-		 * @param {string} obj.text
-		 */
-		addMessage({time, email, text}) {
-			let option = document.createElement('option');
+/**
+ * @typedef {Object} ChatData
+ *
+ * @property {string} user - имя текущего пользователя
+ * @property {Array<ChatMessage>} messages - масси сообщений в чате
+ */
 
-			option.text = `${time} (${email}): ${text}`;
-			option.style.color = this.getHexColor((Math.random() * 1000000).toFixed());
-			this.messages.add(option);
-		}
+/**
+ * @typedef {Object} ChatMessage
+ *
+ * @property {string} text - Текст сообщения
+ * @property {string} name - имя отправителя сообщения
+ */
 
-		getHexColor(number) {
-			return '#' + (number).toString(16).slice(-6);
-		}
+class Chat {
+	constructor({
+			el,
+			data = {messages: []},
+			avatarService,
+			chatService
+		}) {
+		this.el = el;
+		this.data = data;
 
-		onScrollStart(cb) {
+		this.avatarService = avatarService;
+		this.chatService = chatService;
 
-		}
+		this._initEvents();
 
-		onScrollEnd(cb) {
-
-		}
-
-		// methods
+		this._init();
 	}
 
+	_initEvents () {
+		this.el.addEventListener('change', (event) => {
 
-	//export
-	window.Chat = Chat;
-})();
+			if (event.target.classList.contains('chat__userinput')) {
+				this.data.user = event.target.value;
+				this.render();
+			}
+		})
+	}
+
+	_init () {
+		this.startPolling();
+		
+	}
+
+	startPolling () {
+		this.__pollingID = setInterval(() => {
+
+			if (!this.data.user) {
+				return;
+			}
+
+			this.chatService.getMessages(data => {
+				console.log('getMessages', data);
+
+				if (utils.deepEqual(
+						this.data.messages, 
+						data.map(this._prepareMessage.bind(this)))
+					) {
+					return;
+				}
+
+				this.set(data);
+				this.render();
+
+			});
+		}, 4000);
+	}
+
+	stopPolling () {
+		clearInterval(this.__pollingID);
+	}
+
+	render () {
+		this._saveScrollTop();
+		this.el.innerHTML = tmpl(this.getData());
+		this._restoreScrollTop();
+	}
+
+	_saveScrollTop () {
+		let chatBox = this.el.querySelector('.chat__box');
+
+		if (chatBox) {
+			this._scrollTop = chatBox.scrollTop;
+		}
+	}
+
+	_restoreScrollTop () {
+		let chatBox = this.el.querySelector('.chat__box');
+
+		if (chatBox) {
+			chatBox.scrollTop = this._scrollTop;
+		}
+	}
+
+	getData () {
+		return this.data;
+	}
+
+	getUsername () {
+		return this.data.user;
+	}
+
+	_updateMessages () {
+		this.data.messages = this.data.messages.sort((message1, message2) => {
+			return message2.date - message1.date;
+		});	
+	}
+
+	/**
+	 * Устанавливает текущего пользователя
+	 * @param {string} name
+	 */
+	setUser (name) {
+		this.data.user = name;
+	}
+
+	set (messages = []) {
+		this.data.messages.length = 0;
+		this.add(messages);
+	}
+
+	/**
+	 * Массовое добавление сообщений
+	 * @param {Array<ChatMessages>} messages
+	 */
+	add (messages = []) {
+		let addOneMessageMethod = this.addOne.bind(this);
+
+		messages.forEach(addOneMessageMethod);
+	}
+
+	/**
+	 * Добавить новое сообщение в чат
+	 * @param {ChatMessage} data
+	 */
+	addOne (data) {
+		this.data.messages.push(this._prepareMessage(data));
+	}
+
+	_prepareMessage ({avatar, name, text, date = Date.now()}) {
+		return {
+			avatar: this.avatarService.getAvatar(name),
+			name,
+			isMine: name === this.data.user,
+			text,
+			date: new Date(date)
+		}
+	}
+
+	onScrollStart (cb) {
+		console.info('Метод onScrollStart не реализован');
+	}
+
+	onScrollEnd (cb) {
+		console.info('Метод onScrollEnd не реализован');
+	}
+
+	/**
+	 * Устанавливаем текущего юзера
+	 */
+	setUserName (name) {
+		this.data.user = name;
+	}
+
+}
+
+
+//export
+// window.Chat = Chat;
+
+export default Chat;
+
