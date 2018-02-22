@@ -18,12 +18,15 @@
 
 		/**
 		 * Добавить новое сообщение в чат
-		 * @param {ChatMessage} data
+		 * @param {object} obj
+		 * @param {string} obj.time
+		 * @param {string} obj.email
+		 * @param {string} obj.text
 		 */
-		addMessage(data) {
+		addMessage({time, email, text}) {
 			let option = document.createElement('option');
 
-			option.text = `${data.time} (${data.email}): ${data.text}`;
+			option.text = `${time} (${email}): ${text}`;
 			option.style.color = this.getHexColor((Math.random() * 1000000).toFixed());
 			this.messages.add(option);
 		}
